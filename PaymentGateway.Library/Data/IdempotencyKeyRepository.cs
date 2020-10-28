@@ -25,7 +25,7 @@ namespace PaymentGateway.Data
         public virtual async Task<IdempotencyKey> GetItem(Expression<Func<IdempotencyKey, bool>> predicate)
         {
             var query = _context.IdempotencyKeys.Where(predicate);
-            return await query.SingleOrDefaultAsync();
+            return await query.FirstOrDefaultAsync();
         }
 
         public virtual async Task UpdateItem(IdempotencyKey item)

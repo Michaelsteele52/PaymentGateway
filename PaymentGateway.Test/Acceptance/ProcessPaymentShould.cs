@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using FakeItEasy;
 using FluentAssertions;
@@ -11,6 +9,7 @@ using NUnit.Framework;
 using PaymentGateway.Controllers;
 using PaymentGateway.Data;
 using PaymentGateway.Library.Models;
+using PaymentGateway.Library.Services;
 using PaymentGateway.Services;
 
 namespace PaymentGateway.Testing.Acceptance
@@ -20,14 +19,18 @@ namespace PaymentGateway.Testing.Acceptance
     {
         private PaymentController _paymentController;
         private IDbRespository<PaymentDetails> _dbRepository;
+        private IDbRespository<IdempotencyKey> _idempotencyRespository;
         private IPaymentService _paymentService;
+        private IBankService _bankService;
 
         [SetUp]
         public void SetUp()
         {
             var serviceProvider = TestServiceProvider.GetDatabaseContext();
             _dbRepository = new PaymentRepository(serviceProvider.GetService<PaymentsContext>());
-            _paymentService = A.Fake<IPaymentService>();
+            _idempotencyRespository = new IdempotencyKeyRepository(serviceProvider.GetService<PaymentsContext>());
+            _bankService = A.Fake<IBankService>();
+            _paymentService = new PaymentService(_dbRepository, _idempotencyRespository, _bankService);
             _paymentController = new PaymentController(_paymentService);
         }
 
@@ -41,7 +44,7 @@ namespace PaymentGateway.Testing.Acceptance
                 Currency = "GBP",
                 PaymentMethod = new PaymentMethod()
                 {
-                    CardExpiry = new DateTime(2020, 12, 01),
+                    CardExpiry = "12/22",
                     CardNumber = "1000 2000 3000 4000",
                     Cvv = "000"
                 }
@@ -51,8 +54,8 @@ namespace PaymentGateway.Testing.Acceptance
 
             var paymentResponse = new PaymentResponse()
             {
-                PaymentId = paymentId,
-                PaymentStatus = "Payment Successful"
+                BankResponseId = paymentId,
+                Status = "Successful"
             };
             //Act
             var result = await _paymentController.Post(idempotencyKey, newPaymentRequest);
@@ -73,21 +76,26 @@ namespace PaymentGateway.Testing.Acceptance
                 Currency = "GBP",
                 PaymentMethod = new PaymentMethod()
                 {
-                    CardExpiry = new DateTime(2020, 12, 01),
-                    CardNumber = "1000 2000 3000 4000",
+                    CardExpiry = "12/22",
+                    CardNumber = "1000200030004000",
                     Cvv = "000"
                 }
             };
-            var paymentId = Guid.NewGuid();
+            
             var idempotencyKey = Guid.NewGuid();
+
+            await _paymentController.Post(idempotencyKey, newPaymentDetails);
+
+            var payment = await _idempotencyRespository.GetItem(x => x.Id == idempotencyKey);
+            var existingPaymentDetails = await _dbRepository.GetItem(x => x.Id == payment.PaymentId);
 
             var paymentResponse = new PaymentResponse()
             {
-                PaymentId = paymentId,
-                PaymentStatus = "Payment Successful"
+                BankResponseId = existingPaymentDetails.BankResponseId,
+                Status = existingPaymentDetails.Status
             };
+
             //Act
-            await _paymentController.Post(idempotencyKey, newPaymentDetails);
             var response = await _paymentController.Post(idempotencyKey, newPaymentDetails);
             var result = response as OkObjectResult;
             var resultingPaymentId = (PaymentResponse)result?.Value;
@@ -95,7 +103,7 @@ namespace PaymentGateway.Testing.Acceptance
             //Assert
             result.Should().NotBeNull();
             result.Value.IsSameOrEqualTo(paymentResponse);
-            resultingPaymentId.PaymentId.Should().Be(paymentId);
+            resultingPaymentId.BankResponseId.Should().Be(existingPaymentDetails.BankResponseId);
         }
     }
 }

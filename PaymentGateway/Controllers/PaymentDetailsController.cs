@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaymentGateway.Data;
 using PaymentGateway.Library.Models;
+using PaymentGateway.Services;
 using Serilog;
 
 namespace PaymentGateway.Controllers
@@ -14,11 +15,11 @@ namespace PaymentGateway.Controllers
     [ApiController]
     public sealed class PaymentDetailsController : ControllerBase
     {
-        private IDbRespository<PaymentDetails> _paymentsRepository;
+        private IPaymentService _paymentService;
 
-        public PaymentDetailsController(IDbRespository<PaymentDetails> paymentsRepository)
+        public PaymentDetailsController(IPaymentService paymentService)
         {
-            _paymentsRepository = paymentsRepository;
+            _paymentService = paymentService;
         }
 
         [HttpGet("{id}")]
@@ -26,14 +27,14 @@ namespace PaymentGateway.Controllers
         {
             try
             {
-                var paymentDetails = await _paymentsRepository.GetItem(x => x.BankResponseId == id);
+                var paymentResponse = await _paymentService.GetPaymentResponse(id);
 
-                if (paymentDetails == null)
+                if (paymentResponse == null)
                 {
                     return NotFound();
                 }
 
-                return Ok(paymentDetails);
+                return Ok(paymentResponse);
             }
             catch (Exception e)
             {

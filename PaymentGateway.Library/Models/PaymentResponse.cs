@@ -4,8 +4,9 @@ namespace PaymentGateway.Library.Models
 {
     public sealed class PaymentResponse 
     {
-        public Guid PaymentId { get; set; }
-        public string PaymentStatus { get; set; }
-        public int StatusCode { get; set; }
+        public Guid BankResponseId { get; set; }
+        public string Status { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
+        public decimal Amount { get; set; }
     }
 }

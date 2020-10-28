@@ -1,24 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using PaymentGateway.Controllers;
 using PaymentGateway.Data;
 using PaymentGateway.Library.Models;
 using PaymentGateway.Library.Services;
 using PaymentGateway.Services;
+using AutoMapper;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace PaymentGateway
 {
@@ -45,6 +40,8 @@ namespace PaymentGateway
             services.AddHttpClient<IBankService, BankService>(client =>
             {
                 client.BaseAddress = new Uri(Configuration["BankEndpoint"]);
+                client.DefaultRequestHeaders.Add("Client Name", "PaymentGateway");
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Configuration["BankClient:AuthorisationKey"]);
             });
             services.AddControllers();
             services.AddScoped<PaymentController>();

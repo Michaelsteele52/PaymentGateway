@@ -27,7 +27,7 @@ namespace PaymentGateway.Data
         public virtual async Task<PaymentDetails> GetItem(Expression<Func<PaymentDetails, bool>> predicate)
         {
             var query = _context.PaymentDetails.Include(item => item.PaymentMethod).Where(predicate);
-            return await query.SingleOrDefaultAsync();
+            return await query.FirstOrDefaultAsync();
         }
 
         public virtual async Task UpdateItem(PaymentDetails item)

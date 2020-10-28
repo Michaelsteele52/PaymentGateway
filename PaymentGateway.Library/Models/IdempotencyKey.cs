@@ -8,6 +8,5 @@ namespace PaymentGateway.Library.Models
     {
         public Guid Id { get; set; }
         public Guid PaymentId { get; set; }
-        public Guid BankPaymentId { get; set; }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AutoMapper;
 using PaymentGateway.Data;
 using PaymentGateway.Library.Models;
 using PaymentGateway.Services;
@@ -10,9 +12,9 @@ namespace PaymentGateway.Library.Services
 {
     public sealed class PaymentService : IPaymentService
     {
-        private IDbRespository<PaymentDetails> _paymentsRepository;
-        private IDbRespository<IdempotencyKey> _idempotencyRepository;
-        private IBankService _bankService;
+        private readonly IDbRespository<PaymentDetails> _paymentsRepository;
+        private readonly IDbRespository<IdempotencyKey> _idempotencyRepository;
+        private readonly IBankService _bankService;
 
         public PaymentService(IDbRespository<PaymentDetails> paymentsRepository, IDbRespository<IdempotencyKey> idempotencyRepository, IBankService bankService)
         {
@@ -28,42 +30,69 @@ namespace PaymentGateway.Library.Services
             {
                 return await GetExistingPaymentResponse(idemKey.PaymentId);
             }
-            var newPaymentId = Guid.NewGuid();
-            
-            var newPayment = new PaymentDetails()
+
+            var paymentId = Guid.NewGuid();
+            await _idempotencyRepository.AddNewItem(new IdempotencyKey()
+            {
+                Id = idempotencyKey,
+                PaymentId = paymentId
+            });
+
+            //Better done with a Mapper
+            var payment = new PaymentDetails()
             {
                 Amount = paymentRequest.Amount,
                 Currency = paymentRequest.Currency,
-                Id = newPaymentId
+                Id = paymentId,
+                PaymentMethod = paymentRequest.PaymentMethod
             };
 
-            await _paymentsRepository.AddNewItem(newPayment);
+            //Want to add encryption
+            await _paymentsRepository.AddNewItem(payment);
 
             var response = await _bankService.InitiatePayment(paymentRequest);
 
-            //mask payment details
+            payment.Status = response.Status;
+            payment.BankResponseId = response.BankResponseId;
+            await _paymentsRepository.UpdateItem(payment);
 
+            return await GetExistingPaymentResponse(payment.Id);
+        }
 
-            newPayment.Status = response.PaymentStatus;
-            newPayment.BankResponseId = response.PaymentId;
-            await _paymentsRepository.UpdateItem(newPayment);
+        public async Task<PaymentResponse> GetPaymentResponse(Guid bankResponseId)
+        {
+            var payment = await _paymentsRepository.GetItem(x => x.BankResponseId == bankResponseId);
+            if (payment == null)
+            {
+                return null;
+            }
 
-            return PaymentDetailsToResponse(newPayment);
+            return await GetExistingPaymentResponse(payment.Id);
         }
 
         private async Task<PaymentResponse> GetExistingPaymentResponse(Guid paymentId)
         {
             var existingPayment = await _paymentsRepository.GetItem(x => x.Id == paymentId);
+            MaskPaymentMethod(existingPayment.PaymentMethod);
             return PaymentDetailsToResponse(existingPayment);
         }
 
+        //In place, could be refactored to use a Mapper
         private PaymentResponse PaymentDetailsToResponse(PaymentDetails paymentDetails)
         {
+
             return new PaymentResponse()
             {
-                PaymentId = paymentDetails.Id,
-                PaymentStatus = paymentDetails.Status
+                BankResponseId = paymentDetails.BankResponseId,
+                Status = paymentDetails.Status,
+                PaymentMethod = paymentDetails.PaymentMethod
             };
+        }
+
+        private void MaskPaymentMethod(PaymentMethod paymentMethod)
+        {
+            paymentMethod.CardNumber = Regex.Replace(paymentMethod.CardNumber, @"\b[0-9]{12}(?=[0-9]{4}\b)", "************");
+            paymentMethod.Cvv = "***";
         }
     }
 }
