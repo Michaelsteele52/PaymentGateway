@@ -13,7 +13,7 @@ using Serilog;
 
 namespace PaymentGateway.Controllers
 {
-    [Route("payment-gateway/process")]
+    [Route("PaymentGateway/Process")]
     [ApiController]
     public sealed class PaymentController : ControllerBase
     {

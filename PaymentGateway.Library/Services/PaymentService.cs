@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AutoMapper;
 using PaymentGateway.Data;
 using PaymentGateway.Library.Models;
 using PaymentGateway.Services;

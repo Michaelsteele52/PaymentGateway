@@ -11,7 +11,7 @@ using Serilog;
 
 namespace PaymentGateway.Controllers
 {
-    [Route("payment-gateway/details")]
+    [Route("PaymentGateway/Details")]
     [ApiController]
     public sealed class PaymentDetailsController : ControllerBase
     {
@@ -23,6 +23,8 @@ namespace PaymentGateway.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Get(Guid id)
         {
             try

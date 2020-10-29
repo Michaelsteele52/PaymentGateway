@@ -12,7 +12,6 @@ using PaymentGateway.Data;
 using PaymentGateway.Library.Models;
 using PaymentGateway.Library.Services;
 using PaymentGateway.Services;
-using AutoMapper;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace PaymentGateway

@@ -1,0 +1,27 @@
+version '3'
+services:
+    api:
+        restart: on-failure
+        build: 
+            context: .
+            dockerfile: 'PaymentGateway/Dockerfile'
+        depends_on:
+            - bankmock
+        ports:
+            -"8085:80"
+        environment: 
+            - ASPNETCORE_ENVIRONMENT=Development
+            - Kestrel__Certificates__Default__Path=/app/Infrastructure/Certificate/certificate.pfx 
+            - Kestrel__Certificates__Default__Password=password 
+            - ASPNETCORE_URLS=http://+:80 
+        volumes: C:\temp:/app/Infrastructure/Certificate
+    bankmock:
+        image: rodolpheche/wiremock
+        container_name: wiremock-standalone
+        expose:
+            - 8080
+        volumes: 
+            -"./deploy/wiremock:/home/wiremock"
+        command:
+            - -verbose
+            - -global-response-templating
