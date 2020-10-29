@@ -5,6 +5,9 @@ Technology Used:
 - Mock Bank -> Wiremock
 - Docker
 
+Can be run using:
+ docker-compose up -d --build
+
 To Do:
 - Build pipeline
 - Docker-compose
