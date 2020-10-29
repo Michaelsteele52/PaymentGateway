@@ -10,5 +10,6 @@ namespace PaymentGateway.Library.Models
         public string CardExpiry { get; set; }
         public string CardNumber { get; set; }
         public string Cvv { get; set; }
+        public string Issuer {get; set;}
     }
 }

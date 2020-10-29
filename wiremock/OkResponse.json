@@ -1,0 +1,32 @@
+  
+{
+    "mappings": [
+      {
+        "request": {
+          "method": "POST",
+          "url": "/payment"
+        },
+        "response": {
+          "status": 200,
+          "bodyFileName": "payment-response-accepted.json",
+          "fixedDelayMilliseconds": 1000
+        }
+      },
+      {
+        "request": {
+          "method": "POST",
+          "url": "/payment",
+          "bodyPatterns": [
+            {
+              "matchesJsonPath": "$.PaymentMethod[?(@.Issuer == 'BadBank')]"
+            }
+          ]
+        },
+        "response": {
+          "status": 200,
+          "bodyFileName": "payment-response-declined.json",
+          "fixedDelayMilliseconds": 1000
+        }
+      }
+    ]
+  }
