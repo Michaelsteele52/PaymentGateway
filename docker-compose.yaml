@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 services:
     api:
         restart: on-failure
@@ -9,13 +9,13 @@ services:
             - bankmock
         ports:
             - "8085:80"
+            - "4431:443"
         environment: 
             - ASPNETCORE_ENVIRONMENT=Development
-            - Kestrel__Certificates__Default__Path=/app/Infrastructure/Certificate/certificate.pfx 
-            - Kestrel__Certificates__Default__Password=password 
-            - ASPNETCORE_URLS=http://+:80 
+            - ASPNETCORE_URLS=https://+:443;http://+:80 
         volumes: 
-            - C:\temp:/app/Infrastructure/Certificate
+            - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
+            - ${USERPROFILE}\.aspnet\https:/root/.aspnet/https/
     bankmock:
         image: rodolpheche/wiremock
         container_name: wiremock-standalone
