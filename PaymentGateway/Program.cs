@@ -20,7 +20,6 @@ namespace PaymentGateway
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.UseUrls("https://localhost:59418");
                     webBuilder.UseStartup<Startup>();
                 });
     }

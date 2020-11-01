@@ -39,15 +39,15 @@ namespace PaymentGateway
             services.AddHttpClient<IBankService, BankService>(client =>
             {
                 client.BaseAddress = new Uri(Configuration["BankEndpoint"]);
-                client.DefaultRequestHeaders.Add("Client Name", "PaymentGateway");
+                client.DefaultRequestHeaders.TryAddWithoutValidation("Client Name", "PaymentGateway");
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Configuration["BankClient:AuthorisationKey"]);
             });
             services.AddControllers();
             services.AddScoped<PaymentController>();
             services.AddScoped<PaymentDetailsController>();
-            services.AddScoped<IPaymentService, PaymentService>();
             services.AddTransient<IDbRespository<PaymentDetails>, PaymentRepository>();
             services.AddTransient<IDbRespository<IdempotencyKey>, IdempotencyKeyRepository>();
+            services.AddScoped<IPaymentService, PaymentService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
