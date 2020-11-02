@@ -25,23 +25,30 @@ namespace PaymentGateway.Library.Services
         public async Task<PaymentResponse> InitiatePayment(PaymentRequest request)
         {
             var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-            var httpResponse = await _client.PostAsync(_client.BaseAddress, requestContent);
-
-            if (httpResponse.StatusCode != HttpStatusCode.OK)
+            try
             {
-                var bankRequestId = Guid.NewGuid();
-                Log.Information($"Bank Request failed:{httpResponse}, payment Id: {bankRequestId}");
-                return new PaymentResponse()
+                var httpResponse = await _client.PostAsync(_client.BaseAddress, requestContent);
+                if (httpResponse.StatusCode != HttpStatusCode.OK)
                 {
-                    BankResponseId = bankRequestId,
-                    Status = "Unsuccessful"
-                };
+                    var bankRequestId = Guid.NewGuid();
+                    Log.Information($"Bank Request failed:{httpResponse}, payment Id: {bankRequestId}");
+                    return new PaymentResponse()
+                    {
+                        BankResponseId = bankRequestId,
+                        Status = "Unsuccessful"
+                    };
+                }
+
+                var responseContent = await httpResponse.Content.ReadAsStreamAsync();
+                var responseJson = await JsonSerializer.DeserializeAsync<PaymentResponse>(responseContent);
+
+                return responseJson;
             }
-
-            var responseContent = await httpResponse.Content.ReadAsStreamAsync();
-            var responseJson = await JsonSerializer.DeserializeAsync<PaymentResponse>(responseContent);
-
-            return responseJson;
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
     }
 }

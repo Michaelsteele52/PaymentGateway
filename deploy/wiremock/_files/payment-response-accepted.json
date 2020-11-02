@@ -1,6 +1,0 @@
-{
-    "BankResponseId": "{{jsonPath request.body '$.BankResponseId}}",
-    "Status": "Accepted",
-    "PaymentMethod": "{{jsonPath request.body '$.PaymentMethod.Type'}}",
-    "Amount": "{{jsonPath request.body '$.Amount}}"
-}

@@ -84,7 +84,8 @@ namespace PaymentGateway.Library.Services
             {
                 BankResponseId = paymentDetails.BankResponseId,
                 Status = paymentDetails.Status,
-                PaymentMethod = paymentDetails.PaymentMethod
+                PaymentMethod = paymentDetails.PaymentMethod,
+                Amount = paymentDetails.Amount
             };
         }
 
