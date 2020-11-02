@@ -25,9 +25,7 @@ namespace PaymentGateway.Library.Services
         public async Task<PaymentResponse> InitiatePayment(PaymentRequest request)
         {
             var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-            try
-            {
-                var httpResponse = await _client.PostAsync(_client.BaseAddress, requestContent);
+            var httpResponse = await _client.PostAsync(_client.BaseAddress, requestContent);
                 if (httpResponse.StatusCode != HttpStatusCode.OK)
                 {
                     var bankRequestId = Guid.NewGuid();
@@ -43,12 +41,6 @@ namespace PaymentGateway.Library.Services
                 var responseJson = await JsonSerializer.DeserializeAsync<PaymentResponse>(responseContent);
 
                 return responseJson;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
         }
     }
 }
