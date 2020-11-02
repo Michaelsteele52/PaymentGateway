@@ -12,18 +12,20 @@ services:
             - "4431:443"
         environment: 
             - ASPNETCORE_ENVIRONMENT=Development
-            - ASPNETCORE_URLS=https://+:443;http://+:80 
+            - ASPNETCORE_URLS=https://+:443;http://+:80
+            - Kestrel__Certificates__Default__Path=/app/Infrastructure/Certificate/PaymentGateway.pfx
+            - Kestrel__Certificates__Default__Password=password
         volumes: 
-            - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
-            - ${USERPROFILE}\.aspnet\https:/root/.aspnet/https/
+            - C:\temp\:/app/Infrastructure/Certificate
     bankmock:
         image: rodolpheche/wiremock
         container_name: wiremock-standalone
-        expose:
-            - 8080
+        ports:
+            - "8081:8080"
         volumes: 
             - "./deploy/wiremock:/home/wiremock"
         command:
             - -verbose
             - -global-response-templating
+            - -proxy-all=http://bankmock:8080
             

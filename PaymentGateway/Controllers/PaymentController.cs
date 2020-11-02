@@ -23,7 +23,7 @@ namespace PaymentGateway.Controllers
             _paymentService = paymentService;
         }
 
-        [HttpPost("{id}")]
+        [HttpPost()]
         public async Task<IActionResult> Post([FromHeader(Name = "IdempotencyKey")] Guid idempotencyKey, [FromBody] PaymentRequest paymentRequest)
         {
             if (idempotencyKey.Equals(Guid.Empty))
